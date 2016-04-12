@@ -898,16 +898,16 @@ NSString *dzn_implementationKey(id target, SEL selector)
 {
     // First, configure the content view constaints
     // The content view must alway be centered to its superview
-    NSLayoutConstraint *centerXConstraint = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeCenterX];
-    NSLayoutConstraint *centerYConstraint = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeCenterY];
+    NSLayoutConstraint *top = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeTop];
+    NSLayoutConstraint *bottom = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeBottom];
     
-    [self addConstraint:centerXConstraint];
-    [self addConstraint:centerYConstraint];
-    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[contentView]|" options:0 metrics:nil views:@{@"contentView": self.contentView}]];
+    [self addConstraint:top];
+    [self addConstraint:bottom];
+    [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[contentView]-|" options:0 metrics:nil views:@{@"contentView": self.contentView}]];
     
     // When a custom offset is available, we adjust the vertical constraints' constants
     if (self.verticalOffset != 0 && self.constraints.count > 0) {
-        centerYConstraint.constant = self.verticalOffset;
+        top.constant = self.verticalOffset;
     }
     
     // If applicable, set the custom view's constraints
@@ -932,17 +932,19 @@ NSString *dzn_implementationKey(id target, SEL selector)
             [subviewStrings addObject:@"imageView"];
             views[[subviewStrings lastObject]] = _imageView;
             
+            NSLayoutConstraint *imgViewCenterY = [NSLayoutConstraint constraintWithItem:_imageView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.contentView attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:-15];
+            
             [self.contentView addConstraint:[self.contentView equallyRelatedConstraintWithView:_imageView attribute:NSLayoutAttributeCenterX]];
+            [self.contentView addConstraint:imgViewCenterY];
         }
         
         // Assign the title label's horizontal constraints
         if ([self canShowTitle]) {
             
-            [subviewStrings addObject:@"titleLabel"];
-            views[[subviewStrings lastObject]] = _titleLabel;
-            
+            NSLayoutConstraint *titleVerticalSpace = [NSLayoutConstraint constraintWithItem:_titleLabel attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:_imageView attribute:NSLayoutAttributeBottom multiplier:1.0f constant:11.0f];
+            [self.contentView addConstraint:titleVerticalSpace];
             [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-(padding@750)-[titleLabel(>=0)]-(padding@750)-|"
-                                                                                     options:0 metrics:metrics views:views]];
+                                                                                     options:0 metrics:metrics views:@{@"titleLabel" : _titleLabel}]];
         }
         // or removes from its superview
         else {
