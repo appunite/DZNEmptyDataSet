@@ -929,9 +929,6 @@ NSString *dzn_implementationKey(id target, SEL selector)
         // Assign the image view's horizontal constraints
         if (_imageView.superview) {
             
-            [subviewStrings addObject:@"imageView"];
-            views[[subviewStrings lastObject]] = _imageView;
-            
             NSLayoutConstraint *imgViewCenterY = [NSLayoutConstraint constraintWithItem:_imageView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.contentView attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:-15];
             
             [self.contentView addConstraint:[self.contentView equallyRelatedConstraintWithView:_imageView attribute:NSLayoutAttributeCenterX]];
@@ -980,26 +977,6 @@ NSString *dzn_implementationKey(id target, SEL selector)
         else {
             [_button removeFromSuperview];
             _button = nil;
-        }
-        
-        
-        NSMutableString *verticalFormat = [NSMutableString new];
-        
-        // Build a dynamic string format for the vertical constraints, adding a margin between each element. Default is 11 pts.
-        for (int i = 0; i < subviewStrings.count; i++) {
-            
-            NSString *string = subviewStrings[i];
-            [verticalFormat appendFormat:@"[%@]", string];
-            
-            if (i < subviewStrings.count-1) {
-                [verticalFormat appendFormat:@"-(%.f@750)-", verticalSpace];
-            }
-        }
-        
-        // Assign the vertical constraints to the content view
-        if (verticalFormat.length > 0) {
-            [self.contentView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:[NSString stringWithFormat:@"V:|%@|", verticalFormat]
-                                                                                     options:0 metrics:metrics views:views]];
         }
     }
 }
