@@ -28,6 +28,7 @@
 @property (nonatomic, strong) UITapGestureRecognizer *tapGesture;
 
 @property (nonatomic, assign) CGFloat verticalOffset;
+@property (nonatomic, assign) CGFloat bottomOffset;
 @property (nonatomic, assign) CGFloat verticalSpace;
 
 @property (nonatomic, assign) BOOL fadeInOnDisplay;
@@ -261,6 +262,16 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
     
     if (self.emptyDataSetSource && [self.emptyDataSetSource respondsToSelector:@selector(verticalOffsetForEmptyDataSet:)]) {
         offset = [self.emptyDataSetSource verticalOffsetForEmptyDataSet:self];
+    }
+    return offset;
+}
+
+- (CGFloat)dzn_bottomOffset
+{
+    CGFloat offset = 0.0;
+    
+    if (self.emptyDataSetSource && [self.emptyDataSetSource respondsToSelector:@selector(bottomOffsetForEmptyDataSet:)]) {
+        offset = [self.emptyDataSetSource bottomOffsetForEmptyDataSet:self];
     }
     return offset;
 }
@@ -508,6 +519,7 @@ static char const * const kEmptyDataSetView =       "emptyDataSetView";
         
         // Configure offset
         view.verticalOffset = [self dzn_verticalOffset];
+        view.bottomOffset = [self dzn_bottomOffset];
         
         // Configure the empty dataset view
         view.backgroundColor = [self dzn_dataSetBackgroundColor];
@@ -896,19 +908,18 @@ NSString *dzn_implementationKey(id target, SEL selector)
 
 - (void)setupConstraints
 {
+    
     // First, configure the content view constaints
     // The content view must alway be centered to its superview
     NSLayoutConstraint *top = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeTop];
     NSLayoutConstraint *bottom = [self equallyRelatedConstraintWithView:self.contentView attribute:NSLayoutAttributeBottom];
     
+    top.constant = self.verticalOffset;
+    bottom.constant = self.bottomOffset;
+    
     [self addConstraint:top];
     [self addConstraint:bottom];
     [self addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|-[contentView]-|" options:0 metrics:nil views:@{@"contentView": self.contentView}]];
-    
-    // When a custom offset is available, we adjust the vertical constraints' constants
-    if (self.verticalOffset != 0 && self.constraints.count > 0) {
-        top.constant = self.verticalOffset;
-    }
     
     // If applicable, set the custom view's constraints
     if (_customView) {
@@ -929,7 +940,7 @@ NSString *dzn_implementationKey(id target, SEL selector)
         // Assign the image view's horizontal constraints
         if (_imageView.superview) {
             
-            NSLayoutConstraint *imgViewCenterY = [NSLayoutConstraint constraintWithItem:_imageView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.contentView attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:-15];
+            NSLayoutConstraint *imgViewCenterY = [NSLayoutConstraint constraintWithItem:_imageView attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.contentView attribute:NSLayoutAttributeCenterY multiplier:1.0f constant:-15.0f];
             
             [self.contentView addConstraint:[self.contentView equallyRelatedConstraintWithView:_imageView attribute:NSLayoutAttributeCenterX]];
             [self.contentView addConstraint:imgViewCenterY];
